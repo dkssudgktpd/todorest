@@ -1,7 +1,7 @@
 <template>
   <form action="" @submit.prevent="onSubmit">
     <div class="d-flex">
-      <div class="flex-grow-1 mr-2 mb-2">
+      <div class="flex-grow-1 mr-2">
         <input
           class="form-control"
           type="text"
@@ -20,16 +20,19 @@
 <script>
 import { ref } from "vue";
 export default {
-  setup(props, context) {
+  emits: ["add-todo"],
+  setup(props, { emit }) {
+    // 빈 내용 입력 방지 hasError
     const hasError = ref(false);
+    // 새로운 할일 데이터 todo
     const todo = ref("");
-    // todo 등록
+    // Todo 등록
     const onSubmit = () => {
       if (todo.value === "") {
         hasError.value = true;
       } else {
         hasError.value = false;
-        context.emit("addTodo", {
+        emit("add-todo", {
           id: Date.now(),
           subject: todo.value,
           complete: false,
@@ -37,9 +40,11 @@ export default {
       }
       todo.value = "";
     };
-    return { onSubmit, hasError, todo };
+    return {
+      onSubmit,
+      hasError,
+      todo,
+    };
   },
 };
 </script>
-
-<style></style>
