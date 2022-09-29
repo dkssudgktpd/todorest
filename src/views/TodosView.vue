@@ -1,66 +1,24 @@
 <template>
   <div class="container">
-    <h2>Todo View</h2>
-    <div v-if="loading">Loading ...</div>
-    <form v-if="!loading" @submit.prevent="onSave">
-      <div class="row">
-        <div class="col-6">
-          <div class="form-group">
-            <label>Todo Subject</label>
-            <input type="text" class="form-control" v-model="todo.subject" />
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="form-group">
-            <label>Status</label>
-            <div>
-              <button
-                class="btn"
-                :class="todo.complete ? 'btn-success' : 'btn-danger'"
-                @click="toggleTodoState"
-                type="button"
-              >
-                {{ todo.complete ? "완료" : "진행중" }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="btn btn-primary" type="submit" :disabled="todoState">
-        Save
-      </button>
-      <button class="btn btn-outline-dark ml-2" @click="moveList">
-        Cancel
-      </button>
-    </form>
-    <ToastBox v-if="showToast" :message="toastMessage" :color="toastType" />
+    <h2>Todo 수정</h2>
+    <TodoForm :editing="true" />
   </div>
 </template>
 
 <script>
-import { useRoute, useRouter } from "vue-router";
-import { ref, computed } from "vue";
-import axios from "axios";
-import _ from "lodash";
-import ToastBox from "@/components/ToastBox.vue";
-import { useToast } from "@/composables/toast.js";
+import TodoForm from "@/components/TodoForm.vue";
 export default {
   components: {
-    ToastBox,
+    TodoForm,
   },
   setup() {
-    const route = useRoute();
-    const router = useRouter();
-
     // 생명 주기 코드(LifeCycle Hooks)
     //  화면에 보여지기전(등록) 단계
-
     // : 화면을 보여주기 전에 데이터를 준비하는 Hook
     // onBeforeMount(() => {
     //   console.log("onBeforeMount");
     //   console.log(document.querySelector("#test"));
     // });
-
     // 화면에 보여지는 단계
     // onMounted(() => {
     //   console.log("onMounted");
@@ -84,74 +42,6 @@ export default {
     //   clearTimeout(toastTimer.value);
     //   // console.log("onUnmounted");
     // });
-
-    // 데이터 로딩 화면상태
-    const loading = ref(true);
-    const todo = ref(null);
-    // 원본데이터 보관 및 비교(todo 객체)용
-    const originalTodo = ref(null);
-    // 전달받은 id 를 이용해서 db 에서 자료를 가져온다.
-    const getTodo = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/todos/${route.params.id}`
-        );
-        todo.value = { ...response.data };
-        originalTodo.value = { ...response.data };
-        loading.value = false;
-      } catch (err) {
-        triggerToast(
-          "서버에러가 발생하였습니다. 잠시 후 다시 시도 해 주세요.",
-          "danger"
-        );
-      }
-    };
-
-    getTodo();
-
-    const toggleTodoState = () => {
-      todo.value.complete = !todo.value.complete;
-    };
-    const moveList = () => {
-      router.push({
-        name: "Todos",
-      });
-    };
-    const onSave = async () => {
-      try {
-        const res = await axios.put(
-          `http://localhost:3000/todos/${todo.value.id}`,
-          {
-            subject: todo.value.subject,
-            complete: todo.value.complete,
-          }
-        );
-        originalTodo.value = { ...res.data };
-        triggerToast("업데이트가 성공하였습니다.");
-      } catch (err) {
-        triggerToast(
-          "서버에러가 발생하였습니다. 잠시 후 다시 시도 해 주세요.",
-          "danger"
-        );
-      }
-    };
-    const todoState = computed(() => {
-      return _.isEqual(todo.value, originalTodo.value);
-    });
-    // 안내창 관련
-    const { showToast, toastMessage, toastType, triggerToast } = useToast();
-
-    return {
-      todo,
-      loading,
-      toggleTodoState,
-      moveList,
-      onSave,
-      todoState,
-      toastMessage,
-      showToast,
-      toastType,
-    };
   },
 };
 </script>
