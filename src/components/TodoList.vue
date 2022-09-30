@@ -12,24 +12,41 @@
 
           <label
             @click="moveToPage(item.id)"
+            style="cursor: pointer"
             class="form-check-label"
             v-bind:class="{ todostyle: item.complete }"
             >{{ item.subject }}
           </label>
         </div>
         <div>
-          <button class="btn btn-danger btn-sm" @click="deleteTodo(index)">
+          <button class="btn btn-danger btn-sm" @click="openModal(item.id)">
             Delete
           </button>
         </div>
       </div>
     </div>
+
+    <teleport to="#modal">
+      <Transition name="fade">
+        <ModalWin
+          v-show="showModal"
+          @close-modal="closeModal"
+          @delete="onDelete"
+        >
+          <template v-slot:title>할일 삭제</template>
+          <template v-slot:body>삭제하시겠습니까?</template>
+        </ModalWin>
+      </Transition>
+    </teleport>
   </div>
 </template>
 
 <script>
+import { ref } from "vue";
 import { useRouter } from "vue-router";
+import ModalWin from "@/components/ModalWin.vue";
 export default {
+  components: { ModalWin },
   props: ["todos"],
   emits: ["delete-todo", "toggle-todo"],
   setup(props, { emit }) {
@@ -50,13 +67,40 @@ export default {
         params: { id },
       });
     };
+    const showModal = ref(false);
+    const deleteid = ref(null);
+    const openModal = (id) => {
+      deleteid.value = id;
+      showModal.value = true;
+    };
+    const closeModal = () => {
+      showModal.value = false;
+    };
+    const onDelete = () => {
+      deleteTodo(deleteid.value);
+      showModal.value = false;
+    };
     return {
       deleteTodo,
       toggleTodo,
       moveToPage,
+      showModal,
+      openModal,
+      closeModal,
+      onDelete,
     };
   },
 };
 </script>
 
-<style></style>
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

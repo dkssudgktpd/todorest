@@ -1,28 +1,16 @@
 {
   "todos": [
     {
-      "subject": "룰루~_~",
+      "subject": "1번",
       "complete": false,
-      "body": "랄라~_~",
+      "body": "1번",
       "id": 1
     },
     {
-      "subject": "가나다",
+      "subject": "ㅈㄷㄹㅈㄷㄹ",
       "complete": false,
-      "body": "라마바사asdasdasd",
+      "body": "ㅈㄷㄹㅈㄹ",
       "id": 2
-    },
-    {
-      "subject": "ㅇㅈㄷㄹㅈㄷㄹㄷㅈㄹ",
-      "complete": false,
-      "body": "ㅇㅇㅇ",
-      "id": 3
-    },
-    {
-      "subject": "hello",
-      "complete": false,
-      "body": "helloZXSdasdwefasdasdwefewasdasd",
-      "id": 4
     }
   ]
 }

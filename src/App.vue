@@ -69,7 +69,9 @@
       @delete-todo-fail-toast="deleteTodoFailToast"
       @delete-todo-toast="deleteTodoToast"
     />
-    <ToastBox v-if="showToast" :message="toastMessage" :color="toastType" />
+    <Transition name="fade">
+      <ToastBox v-if="showToast" :message="toastMessage" :color="toastType" />
+    </Transition>
   </div>
 </template>
 <script>
@@ -126,7 +128,22 @@ export default {
   },
 };
 </script>
-<style>
+<style scoped>
 #app {
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
