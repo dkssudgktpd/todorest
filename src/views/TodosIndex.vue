@@ -24,29 +24,30 @@
     />
     <!-- Pagination -->
     <PaginationView :page="page" :totalpage="totalPage" @get-todo="getTodo" />
-    <!-- 안내상자 -->
-    <ToastBox v-if="showToast" :message="toastMessage" :color="toastType" />
   </div>
 </template>
 
 <script>
 import axios from "axios";
 import { computed, ref, watch, watchEffect } from "vue";
-
 import TodoList from "@/components/TodoList.vue";
 import PaginationView from "@/components/PaginationView.vue";
 import ErrorBox from "@/components/ErrorBox.vue";
-import ToastBox from "@/components/ToastBox.vue";
-import { useToast } from "@/composables/toast.js";
 import { useRouter } from "vue-router";
 export default {
   components: {
     TodoList,
     PaginationView,
     ErrorBox,
-    ToastBox,
   },
-  setup() {
+  emits: [
+    "list-load-fail-toast",
+    "delete-todo-fail-toast",
+    "delete-todo-toast",
+    "update-todo-toast",
+    "update-todo-fail-toast",
+  ],
+  setup(props, { emit }) {
     const todos = ref([]);
 
     // Pagination 구현
@@ -106,32 +107,13 @@ export default {
         page.value = nowPage;
       } catch (err) {
         error.value = "서버 목록 호출에 실패했습니다. 잠시 뒤 이용해주세요.";
-        triggerToast(
-          "서버 목록 호출에 실패했습니다. 잠시 뒤 이용해주세요.",
-          "danger"
-        );
+        emit("list-load-fail-toast", {});
       }
     };
 
     getTodo();
 
     const error = ref("");
-    const addTodo = async (todo) => {
-      try {
-        await axios.post("http://localhost:3000/todos", {
-          id: todo.id,
-          subject: todo.subject,
-          complete: todo.complete,
-        });
-        todos.value.push(todo);
-        // 목록이 추가되면 1페이지로 이동
-        getTodo(1);
-        triggerToast("목록이 저장되었습니다.");
-      } catch (err) {
-        error.value = "서버 데이터 저장 실패";
-        triggerToast("서버 데이터 저장 실패", "danger");
-      }
-    };
 
     const deleteTodo = async (index) => {
       try {
@@ -142,10 +124,10 @@ export default {
         todos.value.splice(index, 1);
         // 목록이 추가되면 1페이지로 이동
         getTodo(page.value);
-        triggerToast("목록이 삭제되었습니다.");
+        emit("delete-todo-toast", {});
       } catch (err) {
         error.value = "삭제 요청이 거부되었습니다.";
-        triggerToast("삭제 요청이 거부되었습니다.", "danger");
+        emit("delete-todo-fail-toast", {});
       }
     };
 
@@ -159,15 +141,13 @@ export default {
           complete,
         });
         todos.value[index].complete = complete;
-        triggerToast("업데이트에 성공하였습니다.");
+        emit("update-todo-toast", {});
       } catch (err) {
         error.value = "업데이트에 실패하였습니다.";
-        triggerToast("업데이트에 실패하였습니다.", "danger");
+        emit("update-todo-fail-toast", {});
       }
     };
 
-    // 안내창 관련
-    const { showToast, toastMessage, toastType, triggerToast } = useToast();
     const router = useRouter();
     const moveToCreate = () => {
       router.push({
@@ -176,7 +156,6 @@ export default {
     };
     return {
       todos,
-      addTodo,
       deleteTodo,
       toggleTodo,
       searchText,
@@ -185,9 +164,6 @@ export default {
       totalPage,
       page,
       getTodo,
-      toastMessage,
-      showToast,
-      toastType,
       moveToCreate,
     };
   },

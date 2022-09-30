@@ -46,7 +46,6 @@
         {{ editing ? "List" : "Cancel" }}
       </button>
     </form>
-    <ToastBox v-if="showToast" :message="toastMessage" :color="toastType" />
   </div>
 </template>
 
@@ -55,20 +54,23 @@ import { useRoute, useRouter } from "vue-router";
 import { ref, computed } from "vue";
 import axios from "axios";
 import _ from "lodash";
-import ToastBox from "@/components/ToastBox.vue";
-import { useToast } from "@/composables/toast.js";
 
 export default {
-  components: {
-    ToastBox,
-  },
   props: {
     editing: {
       type: Boolean,
       default: false,
     },
   },
-  setup(props) {
+  emits: [
+    "update-todo",
+    "new-todo",
+    "update-load-fail",
+    "update-todo-fail",
+    "new-todo-fail",
+    "err-subject",
+  ],
+  setup(props, { emit }) {
     const route = useRoute();
     const router = useRouter();
     // 데이터 로딩 화면상태
@@ -92,10 +94,7 @@ export default {
         originalTodo.value = { ...response.data };
         loading.value = false;
       } catch (err) {
-        triggerToast(
-          "서버에러가 발생하였습니다. 잠시 후 다시 시도 해 주세요.",
-          "danger"
-        );
+        emit("update-load-fail", {});
       }
     };
     if (props.editing) {
@@ -111,11 +110,12 @@ export default {
     };
     // 제목 미입력시 경고
     const subjectError = ref("");
+
     const onSave = async () => {
       subjectError.value = "";
       if (!todo.value.subject) {
         subjectError.value = "제목을 입력하세요.";
-        triggerToast("제목을 입력하세요", "danger");
+        emit("err-subject", {});
         return;
       }
       try {
@@ -132,27 +132,26 @@ export default {
             data
           );
           originalTodo.value = { ...res.data };
+          emit("update-todo", {});
           moveList();
-          triggerToast("업데이트가 성공하였습니다.");
         } else {
           // 등록 axios 실행
           res = await axios.post(`http://localhost:3000/todos`, data);
           // 내용이 입력된 후 목록으로 보냄
           moveList();
+          emit("new-todo", {});
         }
       } catch (err) {
         if (props.editing) {
-          triggerToast("수정에 실패했습니다.", "danger");
+          emit("update-todo-fail", {});
         } else {
-          triggerToast("등록에 실패했습니다.", "danger");
+          emit("new-todo-fail", {});
         }
       }
     };
     const todoState = computed(() => {
       return _.isEqual(todo.value, originalTodo.value);
     });
-    // 안내창 관련
-    const { showToast, toastMessage, toastType, triggerToast } = useToast();
 
     return {
       todo,
@@ -161,9 +160,6 @@ export default {
       moveList,
       onSave,
       todoState,
-      toastMessage,
-      showToast,
-      toastType,
       subjectError,
     };
   },
