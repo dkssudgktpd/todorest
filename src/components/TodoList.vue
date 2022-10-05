@@ -1,41 +1,43 @@
 <template>
   <div>
-    <div v-for="(item, index) in todos" v-bind:key="index" class="card mt-2">
-      <div class="card-body p-2 d-flex">
-        <div class="form-check flex-grow-1 align-items-center">
-          <input
-            type="checkbox"
-            class="form-check-input"
-            :checked="item.complete"
-            @change="toggleTodo(index)"
-          />
+    <!-- <div v-for="(item, index) in todos" v-bind:key="index" class="card mt-2"> -->
+    <ListView :items="todos">
+      <template #default="{ item, index }">
+        <div class="card-body p-2 d-flex">
+          <div class="form-check flex-grow-1 align-items-center">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              :checked="item.complete"
+              @change="toggleTodo(index)"
+            />
 
-          <label
-            @click="moveToPage(item.id)"
-            style="cursor: pointer"
-            class="form-check-label"
-            v-bind:class="{ todostyle: item.complete }"
-            >{{ item.subject }}
-          </label>
+            <label
+              @click="moveToPage(item.id)"
+              style="cursor: pointer"
+              class="form-check-label"
+              v-bind:class="{ todostyle: item.complete }"
+              >{{ item.subject }}
+            </label>
+          </div>
+          <div>
+            <button class="btn btn-danger btn-sm" @click="openModal(item.id)">
+              Delete
+            </button>
+          </div>
         </div>
-        <div>
-          <button class="btn btn-danger btn-sm" @click="openModal(item.id)">
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
+      </template>
+    </ListView>
+    <!-- </div> -->
 
     <teleport to="#modal">
       <Transition name="fade">
-        <ModalWin
+        <DeleteModal
           v-show="showModal"
           @close-modal="closeModal"
           @delete="onDelete"
-        >
-          <template v-slot:title>할일 삭제</template>
-          <template v-slot:body>삭제하시겠습니까?</template>
-        </ModalWin>
+          @close="closeModal"
+        />
       </Transition>
     </teleport>
   </div>
@@ -44,9 +46,10 @@
 <script>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import ModalWin from "@/components/ModalWin.vue";
+import DeleteModal from "@/components/DeleteModal.vue";
+import ListView from "@/components/ListView.vue";
 export default {
-  components: { ModalWin },
+  components: { DeleteModal, ListView },
   props: ["todos"],
   emits: ["delete-todo", "toggle-todo"],
   setup(props, { emit }) {

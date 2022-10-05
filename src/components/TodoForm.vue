@@ -4,11 +4,16 @@
     <form v-if="!loading" @submit.prevent="onSave">
       <div class="row">
         <div class="col-6">
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label>Todo Subject</label>
             <input type="text" class="form-control" v-model="todo.subject" />
             <div v-if="subjectError" style="color: red">{{ subjectError }}</div>
-          </div>
+          </div> -->
+          <InputView
+            label="제목"
+            :err="subjectError"
+            v-model:subject="todo.subject"
+          />
         </div>
         <!-- 내용 수정 -->
         <div v-if="editing" class="col-6">
@@ -50,12 +55,16 @@
 </template>
 
 <script>
+import InputView from "@/components/InputView.vue";
 import { useRoute, useRouter } from "vue-router";
 import { ref, computed } from "vue";
-import axios from "axios";
+import axios from "@/api/axios.js";
 import _ from "lodash";
 
 export default {
+  components: {
+    InputView,
+  },
   props: {
     editing: {
       type: Boolean,
@@ -87,9 +96,7 @@ export default {
     const getTodo = async () => {
       loading.value = true;
       try {
-        const response = await axios.get(
-          `http://localhost:3000/todos/${route.params.id}`
-        );
+        const response = await axios.get(`todos/${route.params.id}`);
         todo.value = { ...response.data };
         originalTodo.value = { ...response.data };
         loading.value = false;
@@ -127,16 +134,13 @@ export default {
         };
         if (props.editing) {
           // 수정 axios 실행
-          res = await axios.put(
-            `http://localhost:3000/todos/${todo.value.id}`,
-            data
-          );
+          res = await axios.put(`todos/${todo.value.id}`, data);
           originalTodo.value = { ...res.data };
           emit("update-todo", {});
           moveList();
         } else {
           // 등록 axios 실행
-          res = await axios.post(`http://localhost:3000/todos`, data);
+          res = await axios.post(`todos`, data);
           // 내용이 입력된 후 목록으로 보냄
           moveList();
           emit("new-todo", {});
@@ -152,7 +156,6 @@ export default {
     const todoState = computed(() => {
       return _.isEqual(todo.value, originalTodo.value);
     });
-
     return {
       todo,
       loading,

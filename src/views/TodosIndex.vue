@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "@/api/axios.js";
 import { computed, ref, watch, watchEffect } from "vue";
 import TodoList from "@/components/TodoList.vue";
 import PaginationView from "@/components/PaginationView.vue";
@@ -99,7 +99,7 @@ export default {
     const getTodo = async (nowPage = page.value) => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/todos?_page=${nowPage}&_limit=${limit}&subject_like=${searchText.value}&_order=desc&_sort=id`
+          `todos?_page=${nowPage}&_limit=${limit}&subject_like=${searchText.value}&_order=desc&_sort=id`
         );
         todos.value = response.data;
         // 총 목록수
@@ -120,7 +120,7 @@ export default {
         // 현재 index 는 배열 인덱스 번호 0, 1,2,3,4, 가 전송된다.
         // 실제 저장되어 있는 id 를 파악한다.
         const id = index;
-        await axios.delete("http://localhost:3000/todos/" + id);
+        await axios.delete("todos/" + id);
         // 목록이 삭제되면 현재페이지로 이동
         getTodo(page.value);
         emit("delete-todo-toast", {});
@@ -136,7 +136,7 @@ export default {
         // 업데이트 할 내용을 전달합니다.
         const id = todos.value[index].id;
         const complete = !todos.value[index].complete;
-        await axios.patch("http://localhost:3000/todos/" + id, {
+        await axios.patch("todos/" + id, {
           complete,
         });
         todos.value[index].complete = complete;
