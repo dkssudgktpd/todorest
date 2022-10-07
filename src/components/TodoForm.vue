@@ -60,6 +60,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ref, computed } from "vue";
 import axios from "@/api/axios.js";
 import _ from "lodash";
+import { useToast } from "@/composables/toast.js";
 
 export default {
   components: {
@@ -71,15 +72,9 @@ export default {
       default: false,
     },
   },
-  emits: [
-    "update-todo",
-    "new-todo",
-    "update-load-fail",
-    "update-todo-fail",
-    "new-todo-fail",
-    "err-subject",
-  ],
-  setup(props, { emit }) {
+  setup(props) {
+    // toast 기능 관련
+    const { triggerToast } = useToast();
     const route = useRoute();
     const router = useRouter();
     // 데이터 로딩 화면상태
@@ -101,7 +96,8 @@ export default {
         originalTodo.value = { ...response.data };
         loading.value = false;
       } catch (err) {
-        emit("update-load-fail", {});
+        // emit("update-load-fail", {});
+        triggerToast("내용을 불러 오는데 실패하였습니다.", "success");
       }
     };
     if (props.editing) {
@@ -122,7 +118,8 @@ export default {
       subjectError.value = "";
       if (!todo.value.subject) {
         subjectError.value = "제목을 입력하세요.";
-        emit("err-subject", {});
+        triggerToast("제목을 입력하세요", "danger");
+        // emit("err-subject", {});
         return;
       }
       try {
@@ -136,20 +133,24 @@ export default {
           // 수정 axios 실행
           res = await axios.put(`todos/${todo.value.id}`, data);
           originalTodo.value = { ...res.data };
-          emit("update-todo", {});
+          // emit("update-todo", {});
+          triggerToast("내용이 업데이트 되었습니다.", "success");
           moveList();
         } else {
           // 등록 axios 실행
           res = await axios.post(`todos`, data);
           // 내용이 입력된 후 목록으로 보냄
+          triggerToast("새 글이 등록되었습니다.", "success");
           moveList();
-          emit("new-todo", {});
+          // emit("new-todo", {});
         }
       } catch (err) {
         if (props.editing) {
-          emit("update-todo-fail", {});
+          // emit("update-todo-fail", {});
+          triggerToast("업데이트에 실패하였습니다.", "danger");
         } else {
-          emit("new-todo-fail", {});
+          // emit("new-todo-fail", {});
+          triggerToast("새 글 등록에 실패하였습니다.", "danger");
         }
       }
     };
